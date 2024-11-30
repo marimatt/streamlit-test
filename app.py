@@ -2,6 +2,12 @@ from tornado.web import Application, RequestHandler
 from tornado.routing import Rule, PathMatches
 import gc
 import streamlit as st
+from tornado.ioloop import IOLoop
+
+def main():
+    app = Application()
+    app.listen(8080)
+    IOLoop.current().start()
 
 
 @st.cache_resource()
@@ -13,6 +19,9 @@ def setup_api_handler(uri, handler):
 
     # Setup custom handler
     tornado_app.wildcard_router.rules.insert(0, Rule(PathMatches(uri), handler))
+
+    # Start Tornado
+    main()
 
 
 class HelloHandler(RequestHandler):
