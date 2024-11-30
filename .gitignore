@@ -1,0 +1,4 @@
+/hackaton-shop-venv
+.env
+
+.streamlit/secrets.toml
