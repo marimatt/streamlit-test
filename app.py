@@ -1,37 +1,62 @@
-from tornado.web import Application, RequestHandler
-from tornado.routing import Rule, PathMatches
-import gc
 import streamlit as st
-from tornado.ioloop import IOLoop
+import threading
+from fastapi import FastAPI
+from starlette.responses import JSONResponse
+import uvicorn
 
-def main():
-    app = Application()
-    app.listen(8080)
-    IOLoop.current().start()
+# Create a FastAPI app
+api_app = FastAPI()
 
+@api_app.get("/api/hello")
+async def read_hello():
+    return JSONResponse(content={"message": "Hello from FastAPI!"})
 
-@st.cache_resource()
-def setup_api_handler(uri, handler):
-    print("Setup Tornado. Should be called only once")
+# Function to run Uvicorn server in a separate thread
+def run_api():
+    uvicorn.run(api_app, host="0.0.0.0", port=8000)
 
-    # Get instance of Tornado
-    tornado_app = next(o for o in gc.get_referrers(Application) if o.__class__ is Application)
+# Start the FastAPI server
+threading.Thread(target=run_api, daemon=True).start()
 
-    # Setup custom handler
-    tornado_app.wildcard_router.rules.insert(0, Rule(PathMatches(uri), handler))
-
-    # Start Tornado
-    main()
-
-
-class HelloHandler(RequestHandler):
-  def get(self):
-    self.write({'message': 'hello world'})
+# Streamlit UI
+st.title("Streamlit with FastAPI")
+st.write("Go to [localhost:8000/api/hello](http://localhost:8000/api/hello) to test the FastAPI endpoint.")
 
 
-if __name__ == '__main__':
+# from tornado.web import Application, RequestHandler
+# from tornado.routing import Rule, PathMatches
+# import gc
+# import streamlit as st
+# from tornado.ioloop import IOLoop
 
-    setup_api_handler('/api/hello', HelloHandler)
+# def main():
+#     app = Application()
+#     app.listen(8080)
+#     IOLoop.current().start()
+
+
+# @st.cache_resource()
+# def setup_api_handler(uri, handler):
+#     print("Setup Tornado. Should be called only once")
+
+#     # Get instance of Tornado
+#     tornado_app = next(o for o in gc.get_referrers(Application) if o.__class__ is Application)
+
+#     # Setup custom handler
+#     tornado_app.wildcard_router.rules.insert(0, Rule(PathMatches(uri), handler))
+
+#     # Start Tornado
+#     main()
+
+
+# class HelloHandler(RequestHandler):
+#   def get(self):
+#     self.write({'message': 'hello world'})
+
+
+# if __name__ == '__main__':
+
+#     setup_api_handler('/api/hello', HelloHandler)
 
 
 
